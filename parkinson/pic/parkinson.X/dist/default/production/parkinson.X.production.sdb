@@ -1,0 +1,393 @@
+[p LITE_MODE AUTOSTATIC PIC14 PIC14E ]
+[d version 1.1 ]
+[d edition pro ]
+[d chip 16F1829 ]
+[d frameptr 6 ]
+"464 C:\Program Files\Microchip\xc8\v1.38\sources\common\doprnt.c
+[v _printf printf `(i  1 e 2 0 ]
+"62 C:\Program Files\Microchip\xc8\v1.38\sources\common\float.c
+[v ___ftpack __ftpack `(f  1 e 3 0 ]
+"86 C:\Program Files\Microchip\xc8\v1.38\sources\common\ftadd.c
+[v ___ftadd __ftadd `(f  1 e 3 0 ]
+"8 C:\Program Files\Microchip\xc8\v1.38\sources\common\isdigit.c
+[v _isdigit isdigit `(b  1 e 0 0 ]
+"6 C:\Program Files\Microchip\xc8\v1.38\sources\common\lwdiv.c
+[v ___lwdiv __lwdiv `(ui  1 e 2 0 ]
+"6 C:\Program Files\Microchip\xc8\v1.38\sources\common\lwmod.c
+[v ___lwmod __lwmod `(ui  1 e 2 0 ]
+"15 C:\Program Files\Microchip\xc8\v1.38\sources\common\Umul16.c
+[v ___wmul __wmul `(ui  1 e 2 0 ]
+"6 C:\Program Files\Microchip\xc8\v1.38\sources\pic\eeprom.c
+[v _eecpymem eecpymem `(v  1 e 1 0 ]
+"39
+[v _memcpyee memcpyee `(v  1 e 1 0 ]
+"70 C:\Pierre\microchip\projects\C - 16F1829\parkinson.X\main.c
+[v _init init `(v  1 e 1 0 ]
+"154
+[v _isr isr `II(v  1 e 1 0 ]
+"163
+[v _serialCharOut serialCharOut `(v  1 e 1 0 ]
+"168
+[v _putch putch `(v  1 e 1 0 ]
+"179
+[v _gyro_spiRW gyro_spiRW `(v  1 e 1 0 ]
+"193
+[v _flash_spiRW flash_spiRW `(v  1 e 1 0 ]
+"207
+[v _flash_read_page flash_read_page `(v  1 e 1 0 ]
+"234
+[v _flash_block_erase flash_block_erase `(v  1 e 1 0 ]
+"253
+[v _dump_gyro_fifo_to_flash dump_gyro_fifo_to_flash `(uc  1 e 1 0 ]
+"361
+[v _read_flash read_flash `(v  1 e 1 0 ]
+"371
+[v _record record `(v  1 e 1 0 ]
+"403
+[v _main main `(v  1 e 1 0 ]
+[s S232 . 1 `uc 1 IOCIF 1 0 :1:0 
+`uc 1 INTF 1 0 :1:1 
+`uc 1 TMR0IF 1 0 :1:2 
+`uc 1 IOCIE 1 0 :1:3 
+`uc 1 INTE 1 0 :1:4 
+`uc 1 TMR0IE 1 0 :1:5 
+`uc 1 PEIE 1 0 :1:6 
+`uc 1 GIE 1 0 :1:7 
+]
+"360 C:\Program Files\Microchip\xc8\v1.38\include\pic16f1829.h
+[s S241 . 1 `uc 1 . 1 0 :2:0 
+`uc 1 T0IF 1 0 :1:2 
+`uc 1 . 1 0 :2:3 
+`uc 1 T0IE 1 0 :1:5 
+]
+[u S246 . 1 `S232 1 . 1 0 `S241 1 . 1 0 ]
+[v _INTCONbits INTCONbits `VES246  1 e 1 @11 ]
+"1152
+[v _TRISA TRISA `VEuc  1 e 1 @140 ]
+"1201
+[v _TRISB TRISB `VEuc  1 e 1 @141 ]
+"1239
+[v _TRISC TRISC `VEuc  1 e 1 @142 ]
+[s S49 . 1 `uc 1 SWDTEN 1 0 :1:0 
+`uc 1 WDTPS0 1 0 :1:1 
+`uc 1 WDTPS1 1 0 :1:2 
+`uc 1 WDTPS2 1 0 :1:3 
+`uc 1 WDTPS3 1 0 :1:4 
+`uc 1 WDTPS4 1 0 :1:5 
+]
+"1626
+[s S56 . 1 `uc 1 . 1 0 :1:0 
+`uc 1 WDTPS 1 0 :5:1 
+]
+[u S59 . 1 `S49 1 . 1 0 `S56 1 . 1 0 ]
+[v _WDTCONbits WDTCONbits `VES59  1 e 1 @151 ]
+[s S19 . 1 `uc 1 SCS0 1 0 :1:0 
+`uc 1 SCS1 1 0 :1:1 
+`uc 1 . 1 0 :1:2 
+`uc 1 IRCF0 1 0 :1:3 
+`uc 1 IRCF1 1 0 :1:4 
+`uc 1 IRCF2 1 0 :1:5 
+`uc 1 IRCF3 1 0 :1:6 
+`uc 1 SPLLEN 1 0 :1:7 
+]
+"1744
+[s S28 . 1 `uc 1 SCS 1 0 :2:0 
+`uc 1 . 1 0 :1:2 
+`uc 1 IRCF 1 0 :4:3 
+]
+[u S32 . 1 `S19 1 . 1 0 `S28 1 . 1 0 ]
+[v _OSCCONbits OSCCONbits `VES32  1 e 1 @153 ]
+[s S152 . 1 `uc 1 . 1 0 :2:0 
+`uc 1 TXCKSEL 1 0 :1:2 
+`uc 1 T1GSEL 1 0 :1:3 
+`uc 1 . 1 0 :3:4 
+`uc 1 RXDTSEL 1 0 :1:7 
+]
+"2815
+[u S158 . 1 `S152 1 . 1 0 ]
+[v _APFCON0bits APFCON0bits `VES158  1 e 1 @285 ]
+[s S88 . 1 `uc 1 CCP2SEL 1 0 :1:0 
+`uc 1 P2BSEL 1 0 :1:1 
+`uc 1 P1CSEL 1 0 :1:2 
+`uc 1 P1DSEL 1 0 :1:3 
+`uc 1 SS2SEL 1 0 :1:4 
+`uc 1 SDO2SEL 1 0 :1:5 
+]
+"2849
+[u S95 . 1 `S88 1 . 1 0 ]
+[v _APFCON1bits APFCON1bits `VES95  1 e 1 @286 ]
+"2883
+[v _ANSELA ANSELA `VEuc  1 e 1 @396 ]
+"2929
+[v _ANSELB ANSELB `VEuc  1 e 1 @397 ]
+"2964
+[v _ANSELC ANSELC `VEuc  1 e 1 @398 ]
+"3227
+[v _TXREG TXREG `VEuc  1 e 1 @410 ]
+"3252
+[v _SPBRGL SPBRGL `VEuc  1 e 1 @411 ]
+"3271
+[v _SPBRGH SPBRGH `VEuc  1 e 1 @412 ]
+[s S211 . 1 `uc 1 RX9D 1 0 :1:0 
+`uc 1 OERR 1 0 :1:1 
+`uc 1 FERR 1 0 :1:2 
+`uc 1 ADDEN 1 0 :1:3 
+`uc 1 CREN 1 0 :1:4 
+`uc 1 SREN 1 0 :1:5 
+`uc 1 RX9 1 0 :1:6 
+`uc 1 SPEN 1 0 :1:7 
+]
+"3307
+[u S220 . 1 `S211 1 . 1 0 ]
+[v _RCSTAbits RCSTAbits `VES220  1 e 1 @413 ]
+[s S167 . 1 `uc 1 TX9D 1 0 :1:0 
+`uc 1 TRMT 1 0 :1:1 
+`uc 1 BRGH 1 0 :1:2 
+`uc 1 SENDB 1 0 :1:3 
+`uc 1 SYNC 1 0 :1:4 
+`uc 1 TXEN 1 0 :1:5 
+`uc 1 TX9 1 0 :1:6 
+`uc 1 CSRC 1 0 :1:7 
+]
+"3368
+[u S176 . 1 `S167 1 . 1 0 ]
+[v _TXSTAbits TXSTAbits `VES176  1 e 1 @414 ]
+[s S188 . 1 `uc 1 ABDEN 1 0 :1:0 
+`uc 1 WUE 1 0 :1:1 
+`uc 1 . 1 0 :1:2 
+`uc 1 BRG16 1 0 :1:3 
+`uc 1 SCKP 1 0 :1:4 
+`uc 1 . 1 0 :1:5 
+`uc 1 RCIDL 1 0 :1:6 
+`uc 1 ABDOVF 1 0 :1:7 
+]
+"3429
+[u S197 . 1 `S188 1 . 1 0 ]
+[v _BAUDCONbits BAUDCONbits `VES197  1 e 1 @415 ]
+"4313
+[v _SSP2BUF SSP2BUF `VEuc  1 e 1 @537 ]
+[s S131 . 1 `uc 1 BF 1 0 :1:0 
+`uc 1 UA 1 0 :1:1 
+`uc 1 R_nW 1 0 :1:2 
+`uc 1 S 1 0 :1:3 
+`uc 1 P 1 0 :1:4 
+`uc 1 D_nA 1 0 :1:5 
+`uc 1 CKE 1 0 :1:6 
+`uc 1 SMP 1 0 :1:7 
+]
+"4387
+[u S140 . 1 `S131 1 . 1 0 ]
+[v _SSP2STATbits SSP2STATbits `VES140  1 e 1 @540 ]
+[s S105 . 1 `uc 1 SSPM0 1 0 :1:0 
+`uc 1 SSPM1 1 0 :1:1 
+`uc 1 SSPM2 1 0 :1:2 
+`uc 1 SSPM3 1 0 :1:3 
+`uc 1 CKP 1 0 :1:4 
+`uc 1 SSPEN 1 0 :1:5 
+`uc 1 SSPOV 1 0 :1:6 
+`uc 1 WCOL 1 0 :1:7 
+]
+"4451
+[s S114 . 1 `uc 1 SSPM 1 0 :4:0 
+]
+[u S116 . 1 `S105 1 . 1 0 `S114 1 . 1 0 ]
+[v _SSP2CON1bits SSP2CON1bits `VES116  1 e 1 @541 ]
+"7518
+[v _RA4 RA4 `VEb  1 e 0 @100 ]
+"7526
+[v _RB6 RB6 `VEb  1 e 0 @110 ]
+"7530
+[v _RC0 RC0 `VEb  1 e 0 @112 ]
+"7534
+[v _RC2 RC2 `VEb  1 e 0 @114 ]
+"7542
+[v _RC6 RC6 `VEb  1 e 0 @118 ]
+"7764
+[v _TRISA2 TRISA2 `VEb  1 e 0 @1122 ]
+"7768
+[v _TRISA4 TRISA4 `VEb  1 e 0 @1124 ]
+"7770
+[v _TRISA5 TRISA5 `VEb  1 e 0 @1125 ]
+"7774
+[v _TRISB5 TRISB5 `VEb  1 e 0 @1133 ]
+"7776
+[v _TRISB6 TRISB6 `VEb  1 e 0 @1134 ]
+"7778
+[v _TRISB7 TRISB7 `VEb  1 e 0 @1135 ]
+"7780
+[v _TRISC0 TRISC0 `VEb  1 e 0 @1136 ]
+"7784
+[v _TRISC2 TRISC2 `VEb  1 e 0 @1138 ]
+"7792
+[v _TRISC6 TRISC6 `VEb  1 e 0 @1142 ]
+"354 C:\Program Files\Microchip\xc8\v1.38\sources\common\doprnt.c
+[v _dpowers dpowers `DCC[5]ui  1 s 10 dpowers ]
+"362
+[v _hexpowers hexpowers `DCC[4]ui  1 s 8 hexpowers ]
+"67 C:\Pierre\microchip\projects\C - 16F1829\parkinson.X\main.c
+[v _payload payload `[32]uc  1 e 32 0 ]
+"68
+[v _flash_page_address flash_page_address `um  1 e 3 0 ]
+"403
+[v _main main `(v  1 e 1 0 ]
+{
+"406
+[v main@i i `i  1 a 2 44 ]
+"421
+} 0
+"371
+[v _record record `(v  1 e 1 0 ]
+{
+"372
+[v record@status status `uc  1 a 1 40 ]
+"401
+} 0
+"234
+[v _flash_block_erase flash_block_erase `(v  1 e 1 0 ]
+{
+[v flash_block_erase@page_address page_address `um  1 p 3 23 ]
+"251
+} 0
+"253
+[v _dump_gyro_fifo_to_flash dump_gyro_fifo_to_flash `(uc  1 e 1 0 ]
+{
+"256
+[v dump_gyro_fifo_to_flash@byte_address byte_address `ui  1 a 2 35 ]
+"255
+[v dump_gyro_fifo_to_flash@unread unread `ui  1 a 2 32 ]
+"257
+[v dump_gyro_fifo_to_flash@pattern pattern `uc  1 a 1 34 ]
+"253
+[v dump_gyro_fifo_to_flash@page_address page_address `um  1 p 3 23 ]
+"359
+} 0
+"464 C:\Program Files\Microchip\xc8\v1.38\sources\common\doprnt.c
+[v _printf printf `(i  1 e 2 0 ]
+{
+"1500
+[v printf@idx idx `uc  1 a 1 14 ]
+"501
+[v printf@width width `i  1 a 2 20 ]
+"528
+[v printf@val val `ui  1 a 2 18 ]
+"499
+[v printf@c c `c  1 a 1 22 ]
+"506
+[v printf@prec prec `c  1 a 1 17 ]
+"508
+[v printf@flag flag `uc  1 a 1 16 ]
+"466
+[v printf@ap ap `[1]*.4v  1 a 1 15 ]
+"464
+[v printf@f f `*.25DCCuc  1 p 2 2 ]
+"1541
+} 0
+"168 C:\Pierre\microchip\projects\C - 16F1829\parkinson.X\main.c
+[v _putch putch `(v  1 e 1 0 ]
+{
+[v putch@byte byte `uc  1 a 1 wreg ]
+[v putch@byte byte `uc  1 a 1 wreg ]
+[v putch@byte byte `uc  1 a 1 2 ]
+"170
+} 0
+"8 C:\Program Files\Microchip\xc8\v1.38\sources\common\isdigit.c
+[v _isdigit isdigit `(b  1 e 0 0 ]
+{
+[v isdigit@c c `uc  1 a 1 wreg ]
+[v isdigit@c c `uc  1 a 1 wreg ]
+"14
+[v isdigit@c c `uc  1 a 1 2 ]
+"15
+} 0
+"15 C:\Program Files\Microchip\xc8\v1.38\sources\common\Umul16.c
+[v ___wmul __wmul `(ui  1 e 2 0 ]
+{
+"17
+[v ___wmul@product product `ui  1 a 2 5 ]
+"15
+[v ___wmul@multiplier multiplier `ui  1 p 2 1 ]
+[v ___wmul@multiplicand multiplicand `ui  1 p 2 3 ]
+"53
+} 0
+"6 C:\Program Files\Microchip\xc8\v1.38\sources\common\lwmod.c
+[v ___lwmod __lwmod `(ui  1 e 2 0 ]
+{
+"11
+[v ___lwmod@counter counter `uc  1 a 1 1 ]
+"6
+[v ___lwmod@divisor divisor `ui  1 p 2 9 ]
+[v ___lwmod@dividend dividend `ui  1 p 2 11 ]
+"26
+} 0
+"6 C:\Program Files\Microchip\xc8\v1.38\sources\common\lwdiv.c
+[v ___lwdiv __lwdiv `(ui  1 e 2 0 ]
+{
+"11
+[v ___lwdiv@quotient quotient `ui  1 a 2 6 ]
+"12
+[v ___lwdiv@counter counter `uc  1 a 1 8 ]
+"6
+[v ___lwdiv@divisor divisor `ui  1 p 2 1 ]
+[v ___lwdiv@dividend dividend `ui  1 p 2 3 ]
+"31
+} 0
+"361 C:\Pierre\microchip\projects\C - 16F1829\parkinson.X\main.c
+[v _read_flash read_flash `(v  1 e 1 0 ]
+{
+"369
+} 0
+"207
+[v _flash_read_page flash_read_page `(v  1 e 1 0 ]
+{
+"226
+[v flash_read_page@i i `ui  1 a 2 4 ]
+"207
+[v flash_read_page@page_address page_address `um  1 p 3 9 ]
+"232
+} 0
+"163
+[v _serialCharOut serialCharOut `(v  1 e 1 0 ]
+{
+[v serialCharOut@toSend toSend `uc  1 a 1 wreg ]
+[v serialCharOut@toSend toSend `uc  1 a 1 wreg ]
+[v serialCharOut@toSend toSend `uc  1 a 1 1 ]
+"166
+} 0
+"70
+[v _init init `(v  1 e 1 0 ]
+{
+"151
+} 0
+"179
+[v _gyro_spiRW gyro_spiRW `(v  1 e 1 0 ]
+{
+[v gyro_spiRW@adress adress `uc  1 a 1 wreg ]
+"185
+[v gyro_spiRW@i i `ui  1 a 2 7 ]
+"179
+[v gyro_spiRW@adress adress `uc  1 a 1 wreg ]
+[v gyro_spiRW@data data `*.4uc  1 p 1 1 ]
+[v gyro_spiRW@dataLength dataLength `i  1 p 2 2 ]
+"181
+[v gyro_spiRW@adress adress `uc  1 a 1 6 ]
+"191
+} 0
+"193
+[v _flash_spiRW flash_spiRW `(v  1 e 1 0 ]
+{
+[v flash_spiRW@adress adress `uc  1 a 1 wreg ]
+"199
+[v flash_spiRW@i i `ui  1 a 2 7 ]
+"193
+[v flash_spiRW@adress adress `uc  1 a 1 wreg ]
+[v flash_spiRW@data data `*.4uc  1 p 1 1 ]
+[v flash_spiRW@dataLength dataLength `i  1 p 2 2 ]
+"195
+[v flash_spiRW@adress adress `uc  1 a 1 6 ]
+"205
+} 0
+"154
+[v _isr isr `II(v  1 e 1 0 ]
+{
+"161
+} 0

@@ -1,0 +1,437 @@
+/*
+ * File:   main.c
+ * Author: pfreyerm
+ * chip: PIC16F1829
+ * Created on June 11, 2017, 4:36 PM
+ */
+
+
+#include <xc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// PIC16F1829 Configuration Bit Settings
+// #pragma config statements should precede project file includes.
+// Use project enums instead of #define for ON and OFF.
+
+// CONFIG1
+#pragma config FOSC = INTOSC    // Oscillator Selection (INTOSC oscillator: I/O function on CLKIN pin)
+#pragma config WDTE = SWDTEN    // Watchdog Timer Enable (WDT enabled)
+#pragma config PWRTE = OFF      // Power-up Timer Enable (PWRT disabled)
+#pragma config MCLRE = OFF      // MCLR Pin Function Select (MCLR/VPP pin function is digital input)
+#pragma config CP = OFF         // Flash Program Memory Code Protection (Program memory code protection is disabled)
+#pragma config CPD = OFF        // Data Memory Code Protection (Data memory code protection is disabled)
+#pragma config BOREN = ON       // Brown-out Reset Enable (Brown-out Reset enabled)
+#pragma config CLKOUTEN = OFF   // Clock Out Enable (CLKOUT function is disabled. I/O or oscillator function on the CLKOUT pin)
+#pragma config IESO = OFF       // Internal/External Switchover (Internal/External Switchover mode is disabled)
+#pragma config FCMEN = ON       // Fail-Safe Clock Monitor Enable (Fail-Safe Clock Monitor is enabled)
+
+// CONFIG2
+#pragma config WRT = OFF        // Flash Memory Self-Write Protection (Write protection off)
+#pragma config PLLEN = ON       // PLL Enable (4x PLL enabled)
+#pragma config STVREN = ON      // Stack Overflow/Underflow Reset Enable (Stack Overflow or Underflow will cause a Reset)
+#pragma config BORV = LO        // Brown-out Reset Voltage Selection (Brown-out Reset Voltage (Vbor), low trip point selected.)
+#pragma config LVP = ON         // Low-Voltage Programming Enable (Low-voltage programming enabled)
+
+// CPU freq
+#define _XTAL_FREQ  (32000000UL)
+
+// LED
+#define LED     RB6
+
+// button
+#define BUTTON  RC6
+
+// SPI CS pins
+#define CS_gyro     RA2
+#define CS_flash    RA4
+
+//proto
+void init();
+char spiRW(char out);
+void gyro_spiRW(char address, char * data, int dataLength);
+void flash_spiRW(char address, char * data, int dataLength);
+void serialCharOut(char toSend);
+void serialOut(char * string, int length);
+void flash_test();
+void flash_read_page(unsigned short long page_address);
+void flash_block_erase(unsigned short long page_address);
+void gyro_read_buffer();
+void dump_gyro_fifo_to_flash(unsigned short long page_address);
+
+//global var
+unsigned char payload[32];        //general purpose payload 
+unsigned short long flash_page_address = 0x000002;
+
+void init(){
+    OSCCONbits.IRCF = 0b1110;   // 32MHz
+    WDTCONbits.WDTPS = 0b01101; // watchdog
+
+    ANSELA = 0b00000000;    // no analog input on port A
+    ANSELB = 0b00000000;    // no analog input on port b
+    ANSELC = 0b00000000;    // no analog input on port C
+    TRISA = 0b11111111;
+    TRISB = 0b11111111;
+    TRISC = 0b11111111;
+    
+    TRISB7 = 0;             // SPI2 CLK as output
+    TRISB5 = 1;             // SPI2 SDI as input
+    TRISA5 = 0;             // SPI2 SDO as output
+    TRISA4 = 0;             // SPI2 CS flash command pin
+    TRISA2 = 0;             // SPI2 CS gyro command pin
+    TRISB6 = 0;             // LED outup
+    TRISC6 = 1;             // Button input
+
+    APFCON1bits.SDO2SEL = 1;
+    APFCON1bits.SS2SEL = 1;
+    SSP2CON1bits.CKP = 0;                // SPI clk phase
+    SSP2STATbits.CKE = 1;                // SPI clk default low
+    SSP2CON1bits.SSPM0 = 0;              // SPI clock Fosc/64
+    SSP2CON1bits.SSPM1 = 1;              // "
+    SSP2CON1bits.SSPM2 = 0;              // "
+    SSP2CON1bits.SSPM3 = 0;              // "
+    SSP2CON1bits.SSPEN = 1;              // Enable SPI
+    
+    APFCON0bits.TXCKSEL = 1;    // TX on RC4
+    TXSTAbits.SYNC = 0;         // async serial
+    TXSTAbits.BRGH = 1;         // high freq bauds
+    BAUDCONbits.BRG16 = 1;      // 16bit baud generator
+    SPBRGL = 68;                // 115200 bauds
+    SPBRGH = 0;
+    RCSTAbits.SPEN = 1;         // enable serial
+    TXSTAbits.TXEN = 1;         // enable serial TX
+
+    CS_gyro = 1;
+    CS_flash = 1;
+    
+     __delay_ms(1);
+    
+    // init gyro
+    payload[0] = 0x00;
+    gyro_spiRW(0x0A, payload, 1);   // fifo disable
+    payload[0] = 0x21;
+    gyro_spiRW(0x10, payload, 1);   // Accel output rate 26Hz, 2g scale
+    payload[0] = 0x22;
+    gyro_spiRW(0x11, payload, 1);   // Gyro output rate 26Hz, 125 dps scale
+    payload[0] = 0x20;
+    gyro_spiRW(0x19, payload, 1);   // enable timer
+    payload[0] = 0xFF;
+    gyro_spiRW(0x06, payload, 1);   // fifo watermark L
+    payload[0] = 0x07;
+    gyro_spiRW(0x07, payload, 1);   // fifo watermark H
+    payload[0] = 0x09;
+    gyro_spiRW(0x08, payload, 1);   // fifo no decimation
+    
+     flash_spiRW(0xFF, payload, 0);  // reset flash
+     
+    __delay_ms(1);
+
+    payload[0] = 0x16;
+    gyro_spiRW(0x0A, payload, 1);   // fifo enable, 26Hz, continuous
+    
+}
+
+void serialCharOut(char toSend) {
+    TXREG = toSend;
+    while (!TXSTAbits.TRMT) {;}
+}
+
+void serialOut(char * data, int length) {
+    for(unsigned int i=0; i<length; i++){
+        TXREG = data[i];
+        while (TXSTAbits.TRMT == 0) {;}
+    }
+}
+
+char spiRW(char out) {
+    SSP2BUF = out;
+    while (SSP2STATbits.BF == 0){;}
+    return SSP2BUF;
+}
+
+void gyro_spiRW(char adress, char * data, int dataLength){
+
+    CS_gyro = 0;
+    SSP2BUF = adress;
+    while (SSP2STATbits.BF == 0){;}
+
+    for(unsigned int i=0; i<dataLength; i++){
+        SSP2BUF = data[i];
+        while (SSP2STATbits.BF == 0){;}
+        data[i] = SSP2BUF;
+    }
+    CS_gyro = 1;
+}
+
+void flash_spiRW(char adress, char * data, int dataLength){
+
+    CS_flash = 0;
+    SSP2BUF = adress;
+    while (SSP2STATbits.BF == 0){;}
+
+    for(unsigned int i=0; i<dataLength; i++){
+        SSP2BUF = data[i];
+        while (SSP2STATbits.BF == 0){;}
+        data[i] = SSP2BUF;
+    }
+    CS_flash = 1;
+}
+
+void flash_test(){
+    
+    flash_spiRW(0xFF, payload, 0);  // reset flash
+    __delay_ms(1);
+    payload[0] = 0xA0;              // lock feature
+    payload[1] = 0x00;              // all unlock
+    flash_spiRW(0x1F, payload, 2);  // set features
+    serialOut(payload, 2);          // send on serial port
+    
+    payload[0] = 0xC0;              // status feature
+    payload[1] = 0x00;
+    flash_spiRW(0x0F, payload, 2);  // get features
+    serialOut(payload, 2);          // send on serial port
+
+    flash_spiRW(0x9F, payload, 3);  // get devide ID
+    serialOut(payload, 3);          // send on serial port
+
+//        
+//        flash_spiRW(0x06, payload, 0); // write enable
+//        
+//        payload[0] = 0x00;              // address
+//        payload[1] = 0x00;              // address
+//        payload[2] = 0x01;              // address
+//        flash_spiRW(0xD8, payload, 3);  // block erase
+//        
+//        __delay_ms(1000);
+//        
+//        flash_spiRW(0x06, payload, 0); // write enable
+//        
+//        payload[0] = 0x00;              // address
+//        payload[1] = 0x00;              // address
+//        payload[2] = 0xDE;              // data
+//        payload[3] = 0xAD;              // data
+//        payload[4] = 0xBE;              // data
+//        payload[5] = 0xEF;              // data
+//        payload[6] = 0x00;              // data
+//        flash_spiRW(0x02, payload, 7);  // program load
+//        
+//        payload[0] = 0x00;              // address
+//        payload[1] = 0x00;              // address
+//        payload[2] = 0x01;              // address
+//        flash_spiRW(0x10, payload, 3);  // program excecute
+//        
+//        __delay_ms(1000);
+//        
+//        payload[0] = 0xC0;              // status feature
+//        payload[1] = 0x00;
+//        flash_spiRW(0x0F, payload, 2);  // get features
+//        serialOut(payload, 2);          // send on serial port
+
+    __delay_ms(1000);
+
+    payload[0] = 0x00;              // Page address
+    payload[1] = 0x00;
+    payload[2] = 0x01;
+    flash_spiRW(0x13, payload, 3);  // read cell array
+
+    __delay_ms(1);
+
+    payload[0] = 0xC0;              // status feature
+    payload[1] = 0x00;
+    flash_spiRW(0x0F, payload, 2);  // get features
+    serialOut(payload, 2);          // send on serial port
+
+    payload[0] = 0x00;              // address
+    payload[1] = 0x00;              // address
+    flash_spiRW(0x03, payload, 8);  // read buffer
+    serialOut(payload, 8);          // send on serial port
+
+    __delay_ms(5000);
+    
+}
+
+void flash_read_page(unsigned short long page_address){
+    
+    payload[0] = (page_address & 0xFF0000) >> 16;   // address
+    payload[1] = (page_address & 0x00FF00) >> 8;    // address
+    payload[2] = (page_address & 0x0000FF);         // address
+    flash_spiRW(0x13, payload, 3);  // read cell array
+
+    __delay_ms(1);
+
+    payload[0] = 0xC0;              // status feature
+    payload[1] = 0x00;
+    flash_spiRW(0x0F, payload, 2);  // get features
+//    serialOut(payload, 2);          // send on serial port
+
+    for (unsigned int i = 0; i < 4105; i++){
+        payload[0] = (i & 0xFF00) >> 8;              // address
+        payload[1] = i & 0x00FF;              // address
+//        serialOut(payload, 2);          // send on serial port
+        flash_spiRW(0x03, payload, 4);  // read buffer
+        payload[0] = payload[3];
+        serialOut(payload, 1);          // send on serial port
+    }
+    
+}
+
+void flash_block_erase(unsigned short long page_address) {
+    __delay_ms(5000);
+    __delay_ms(5000);
+    
+    payload[0] = 0xA0;                  // lock feature
+    payload[1] = 0x00;                  // all unlock
+    flash_spiRW(0x1F, payload, 2);      // set features
+    
+    flash_spiRW(0x06, payload, 0); // write enable
+    
+    payload[0] = (page_address & 0xFF0000) >> 16;   // address
+    payload[1] = (page_address & 0x00FF00) >> 8;    // address
+    payload[2] = (page_address & 0x0000FF);         // address
+    flash_spiRW(0xD8, payload, 3);  // block erase
+    
+    __delay_ms(1000);
+    
+}
+    
+void gyro_read_buffer(){
+    
+    unsigned char fifoStatus1, fifoStatus2;
+    unsigned int unread = 0x01;
+    
+    gyro_spiRW(0xBA, payload, 1);       // read fifo status 1
+    fifoStatus1 = payload[0];
+    gyro_spiRW(0xBB, payload, 1);       // read fifo status 2 
+    fifoStatus2 = payload[0];
+    unread = (fifoStatus2 << 8) + fifoStatus1;
+    
+    while (unread > 8) {
+        gyro_spiRW(0xBC, payload, 1);      // read pattern
+//        serialOut(payload, 1);              // send on serial port
+        gyro_spiRW(0xBE, payload, 1);      // read MSB
+//        serialOut(payload, 1);              // send on serial port
+        gyro_spiRW(0xBF, payload, 1);      // read LSB
+//        serialOut(payload, 1);              // send on serial port
+        
+
+        gyro_spiRW(0xBA, payload, 1);       // read fifo status 1
+        fifoStatus1 = payload[0];
+        gyro_spiRW(0xBB, payload, 1);       // read fifo status 2 
+        fifoStatus2 = payload[0];
+        unread = (fifoStatus2 << 8) + fifoStatus1;
+    }
+    
+    gyro_spiRW(0xC0, payload, 3);       // read timestamp 
+    serialOut(payload, 3);      // send on serial port
+    
+}
+
+void dump_gyro_fifo_to_flash(unsigned short long page_address) {
+    
+    unsigned char fifoStatus1, fifoStatus2;
+    unsigned char pattern, low, high;
+    unsigned int unread = 0x01;
+    unsigned int byte_address = 0x0000;
+    
+    gyro_spiRW(0xBA, payload, 1);       // read fifo status 1
+    fifoStatus1 = payload[0];
+    gyro_spiRW(0xBB, payload, 1);       // read fifo status 2 
+    fifoStatus2 = payload[0];
+    unread = (fifoStatus2 << 8) + fifoStatus1;
+    
+    if (unread <= 8) return;
+    
+    payload[0] = 0xA0;              // lock feature
+    payload[1] = 0x00;              // all unlock
+    flash_spiRW(0x1F, payload, 2);  // set features
+    
+    flash_spiRW(0x06, payload, 0); // write enable
+
+    payload[0] = 0x00;              // address
+    payload[1] = 0x00;              // address
+    payload[2] = 0xFF;              // dummy data
+    flash_spiRW(0x02, payload, 3);  // program load
+
+    while (unread > 8 && byte_address < 4090) {
+        gyro_spiRW(0xBC, payload, 1);      // read pattern
+//        serialOut(payload, 1);              // send on serial port
+        pattern = payload[0];
+        gyro_spiRW(0xBE, payload, 1);      // read L
+//        serialOut(payload, 1);              // send on serial port
+        low = payload[0];
+        gyro_spiRW(0xBF, payload, 1);      // read H
+//        serialOut(payload, 1);              // send on serial port
+        high = payload[0];
+        
+        payload[0] = (byte_address & 0xFF00) >> 8;    // address
+        payload[1] = (byte_address & 0x00FF);         // address
+        payload[2] = pattern;               // data
+        payload[3] = low;                   // data
+        payload[4] = high;                  // data
+        flash_spiRW(0x84, payload, 5);  // program load random
+        
+        gyro_spiRW(0xBA, payload, 1);       // read fifo status 1
+        fifoStatus1 = payload[0];
+        gyro_spiRW(0xBB, payload, 1);       // read fifo status 2 
+        fifoStatus2 = payload[0];
+        unread = (fifoStatus2 << 8) + fifoStatus1;
+        
+        byte_address += 3;
+    }
+        
+    // load time stamp and samples number
+    
+    payload[2] = (byte_address & 0xFF00) >> 8;        // data
+    payload[3] = (byte_address & 0x00FF);             // data
+    payload[0] = (4096 & 0xFF00) >> 8;    // address
+    payload[1] = (4096 & 0x00FF);         // address
+    flash_spiRW(0x84, payload, 4);  // program load random
+    
+    gyro_spiRW(0xC0, payload, 3);       // read timestamp 
+    serialOut(payload, 3);              // send on serial port
+    
+    payload[4] = payload[2];                // data
+    payload[3] = payload[1];                // data
+    payload[2] = payload[0];                // data
+    payload[0] = (4098 & 0xFF00) >> 8;      // address
+    payload[1] = (4098 & 0x00FF);           // address
+    flash_spiRW(0x84, payload, 5);          // program load random
+
+    payload[0] = (page_address & 0xFF0000) >> 16;   // address
+    payload[1] = (page_address & 0x00FF00) >> 8;    // address
+    payload[2] = (page_address & 0x0000FF);         // address
+    serialOut(payload, 3);                          // send on serial port
+    flash_spiRW(0x10, payload, 3);                  // program excecute
+    
+    __delay_ms(1000);
+    
+    payload[0] = 0xC0;              // status feature
+    payload[1] = 0x00;
+    flash_spiRW(0x0F, payload, 2);  // get features
+    serialOut(payload, 2);          // send on serial port
+    
+}
+
+void main(void) {
+    init();
+    
+//    flash_block_erase(0x000000);
+    
+    while (1) {
+        
+        LED = 1;
+//        dump_gyro_fifo_to_flash(flash_page_address);      
+//        gyro_read_buffer();
+        flash_read_page(0x000002);
+        LED = BUTTON;
+        flash_page_address++;
+        
+        __delay_ms(5000);
+        
+//        // watch dog enable
+//        SWDTEN = 1;
+//        SLEEP();
+//        NOP();
+        
+    }
+}
