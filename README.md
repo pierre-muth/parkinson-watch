@@ -1,6 +1,6 @@
 # parkinson-watch
 Code related to a monitoring watch for Parkinson disease.
 Early prototype:
-![prototype](proto01.png)
+![prototype](proto01.jpg)
 ![schematics](schematics.png)
 
